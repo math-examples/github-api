@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+
+    <meta http-equiv="Cache-Control" content="no-cache"/>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <title>GitHub API</title>
+
+    <script src="https://math-examples.github.io/web/math-examples.js"></script>
+
+    <script src="https://math-examples.github.io/web/requestUserRepoContent.js"></script>
+
+</head>
+<body>
+
+You are visitor number
+
+<img
+
+        width="20" height="20" src="http://stuff.mit.edu/cgi/counter/math-examples.github.io/github-api" alt="several">
+
+. Welcome!
+
+<br>
+<button class="button" onclick="downloadAll()">Download</button>
+<button class="button" onclick="next(-1)">Previous</button>
+<button class="button" onclick="next(1)">Next</button>
+
+
+<h3 class="h3">GitHub API</h3>
+<form id="githubForm" class="form">
+    <input id="usernameInput" class="input" type="text" name="username" placeholder="GitHub Username"><br>
+    <input id="repositoryInput" class="input" type="text" name="repository" placeholder="GitHub Repository"><br><br>
+    <input type="submit" class="button" value="Submit">
+</form>
+
+<ol id="userReposContent" class="ol">
+
+</ol>
+
+
+<script>
+    var gPage;
+    var gRev = 0;
+
+    function processUser() {
+        const params = new URLSearchParams(window.location.search);
+        const user = params.get("user");
+        const repo = params.get("repo");
+        var page = parseInt(params.get("page"));
+        if (!page) page = 1;
+        gPage = page;
+        gRev = parseInt(params.get("rev"));
+        let usernameInput = document.getElementById('usernameInput');
+        let repositoryInput = document.getElementById('repositoryInput');
+        usernameInput.value = user;
+        repositoryInput.value = repo;
+        mysubmit();
+    }
+
+    function mysubmit() {
+        // Get the GitHub username input field on the DOM
+        let usernameInput = document.getElementById('usernameInput');
+        let repositoryInput = document.getElementById('repositoryInput');
+
+        // Get the value of the GitHub username input field
+        let githubUsername = usernameInput.value;
+        let githubRepository = repositoryInput.value;
+
+        const preview = document.querySelector('#userReposContent');
+        while (preview.firstChild) {
+            preview.removeChild(preview.firstChild);
+        }
+        if (!githubRepository) requestUserReposWithPage(githubUsername, gPage);
+        else if (!gRev) requestUserRepoContent(githubUsername, githubRepository);
+        else requestUserRepoContentReverse(githubUsername, githubRepository);
+    }
+
+    function nextRepo(which) {
+        let repositoryInput = document.getElementById('repositoryInput');
+        let str = repositoryInput.value;
+        var m = str.match(/\d+/g);
+        if (!m || m.length < 1) return;
+        var s0 = m[m.length - 1];
+        var num = parseInt(s0);
+        num += which;
+        var s2 = '' + num;
+        var l2 = s2.length;
+        if (s0.length < l2) l2 = s0.length;
+        var s1 = str.substring(0, str.length - l2);
+        if (s1) s2 = s1 + s2;
+        repositoryInput.value = s2;
+        mysubmit();
+    }
+
+    function nextPage(which) {
+        if (which == 1) {
+            const preview = document.querySelector('#userReposContent');
+            if (!preview.firstChild) return;
+        }
+        if (which == -1) {
+            if (gPage <= 1) return;
+        }
+        gPage += which;
+        mysubmit();
+    }
+
+    function next(which) {
+        let repositoryInput = document.getElementById('repositoryInput');
+        let str = repositoryInput.value;
+        if (!str) {
+            nextPage(which);
+        } else {
+            nextRepo(which);
+        }
+    }
+
+    // Get the GitHub username input form
+    const githubForm = document.getElementById('githubForm');
+
+    // Listen for submissions on GitHub username input form
+    githubForm.addEventListener('submit', (e) => {
+        // Prevent default form submission action
+        e.preventDefault();
+        gPage = 1;
+        mysubmit();
+    });
+
+
+    function downloadAll() {
+        // Get the GitHub username input field on the DOM
+        let usernameInput = document.getElementById('usernameInput');
+        let repositoryInput = document.getElementById('repositoryInput');
+
+        // Get the value of the GitHub username input field
+        let githubUsername = usernameInput.value;
+        let githubRepository = repositoryInput.value;
+        if (!githubRepository) return;
+
+        // Run GitHub API function, passing in the GitHub username
+        downloadUserRepo(githubUsername, githubRepository);
+    }
+
+    processUser();
+
+</script>
+</body>
+</html>
